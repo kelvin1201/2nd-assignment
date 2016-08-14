@@ -1,0 +1,246 @@
+
+import controlP5.*;
+
+
+
+ControlP5 cp5;
+
+Dong[][] d;
+int nx = 10;
+int ny = 10;
+
+int col;
+int colEllipse;
+boolean visible;
+int myColor1 = color(255);
+int c1, c2;
+float n, n1;
+
+void setup() {
+  size(700, 400);
+  head();
+  matrixstart();
+  keytekan();
+}
+
+void draw() {
+  background(myColor1);
+  fill(255, 100);
+  pushMatrix();
+  translate(width/2 + 150, height/2);
+  rotate(frameCount*0.001);
+  for (int x = 0; x<nx; x++) {
+    for (int y = 0; y<ny; y++) {
+      d[x][y].display();
+    }
+  }
+
+  if (visible) {
+    fill(colEllipse);
+    ellipse(100, 100, 50, 50);
+    ellipse(150, 400, 200, 200);
+  } 
+  
+  popMatrix();
+  myColor1 = lerpColor(c1, c2, n);
+  n += (1-n)* 0.1;
+}
+
+
+
+// function colorA will receive changes from 
+// controller with name colorA
+public void A(int theValue) {
+  println("a button event from A: "+theValue);
+  c1 = c2;
+  c2 = color(0, 160, 100);
+}
+
+// function colorB will receive changes from 
+// controller with name colorB
+public void B(int theValue) {
+  println("a button event from B: "+theValue);
+  c1 = c2;
+  c2 = color(150, 0, 0);
+}
+
+// function colorC will receive changes from 
+// controller with name colorC
+public void C(int theValue) {
+  println("a button event from C: "+theValue);
+  c1 = c2;
+  c2 = color(255, 255, 0);
+}
+
+
+
+
+
+
+
+
+void head() {
+
+  noStroke();
+  cp5 = new ControlP5(this);
+
+  // create a new button with name 'buttonA'
+  cp5.addButton("A")
+    .setValue(0)
+    .setPosition(90, 70)
+    .setSize(20, 20)
+    ;
+
+  // and add another 2 buttons
+  cp5.addButton("B")
+    .setValue(100)
+    .setPosition(140, 70)
+    .setSize(20, 20)
+    ;
+
+  cp5.addButton("C")
+    .setPosition(190, 70)
+    .setSize(20, 20)
+    .setValue(0)
+    ;
+
+}
+
+void keytekan() {
+  smooth();
+  noStroke();
+  col = color(0);
+  colEllipse = color(0, 255, 90);  
+  cp5 = new ControlP5(this);
+
+  // press key 1 to change background to white             
+  cp5.mapKeyFor(new ControlKey() {
+    public void keyEvent() {
+      col = color(255);
+    }
+  }
+  , '1');
+
+  // press key 2 to change background to black
+  cp5.mapKeyFor(new ControlKey() {
+    public void keyEvent() {
+      col = color(0);
+    }
+  }
+  , '2');
+
+  // press key 1 and ALT to make circles visible
+  cp5.mapKeyFor(new ControlKey() {
+    public void keyEvent() {
+      visible = true;
+    }
+  }
+  , ALT, '1');
+
+  // press key 2 and ALT to hide circles
+  cp5.mapKeyFor(new ControlKey() {
+    public void keyEvent() {
+      visible = false;
+    }
+  }
+  , ALT, '2');
+
+  // press key 1 and ALT and SHIFT to change the color of circles
+  cp5.mapKeyFor(new ControlKey() {
+    public void keyEvent() {
+      colEllipse = color(random(255));
+    }
+  }
+  , ALT, '1', SHIFT);
+}
+
+
+void matrixstart() {
+
+
+  cp5 = new ControlP5(this);
+  cp5.printPublicMethodsFor(Matrix.class);
+
+  cp5.addMatrix("myMatrix")
+    .setPosition(50, 100)
+    .setSize(200, 200)
+    .setGrid(nx, ny)
+    .setGap(10, 1)
+    .setInterval(200)
+    .setMode(ControlP5.MULTIPLES)
+    .setColorBackground(color(120))
+    .setBackground(color(40))
+    ;
+
+  cp5.getController("myMatrix").getCaptionLabel().alignX(CENTER);
+
+  // use setMode to change the cell-activation which by 
+  // default is ControlP5.SINGLE_ROW, 1 active cell per row, 
+  // but can be changed to ControlP5.SINGLE_COLUMN or 
+  // ControlP5.MULTIPLES
+
+  d = new Dong[nx][ny];
+  for (int x = 0; x<nx; x++) {
+    for (int y = 0; y<ny; y++) {
+      d[x][y] = new Dong();
+    }
+  }  
+  noStroke();
+  smooth();
+}
+
+
+
+
+
+
+void keyPressed() {
+  if (key=='a') {
+    cp5.get(Matrix.class, "myMatrix").set(0, 0, true);
+  } else if (key=='b') {
+    cp5.get(Matrix.class, "myMatrix").set(0, 1, true);
+  } else if (key=='c') {
+    cp5.get(Matrix.class, "myMatrix").trigger(0);
+  } else if (key=='p') {
+    if (cp5.get(Matrix.class, "myMatrix").isPlaying()) {
+      cp5.get(Matrix.class, "myMatrix").pause();
+    } else {
+      cp5.get(Matrix.class, "myMatrix").play();
+    }
+  } else if (key=='d') {
+    cp5.get(Matrix.class, "myMatrix").clear();
+  }
+}
+
+
+
+
+class Dong {
+  float x, y;
+  float s0, s1;
+
+  Dong() {
+    float f= random(-PI, PI);
+    x = cos(f)*random(100, 150);
+    y = sin(f)*random(100, 150);
+    s0 = random(2, 10);
+  }
+
+  void display() {
+    s1 += (s0-s1)*0.1;
+    ellipse(x, y, s1, s1);
+  }
+
+  void update() {
+    s1 = 50;
+  }
+}
+
+void myMatrix(int theX, int theY) {
+  println("got it: "+theX+", "+theY);
+  d[theX][theY].update();
+}
+ void controlEvent(ControlEvent theEvent) {
+  println(theEvent.getController().getName());
+  n = 0;
+}
